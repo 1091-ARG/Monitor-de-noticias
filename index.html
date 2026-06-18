@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Aurora — Monitor</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0e0e10; color: #e8e6e0; line-height: 1.5; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 80px; }
+header { display: flex; align-items: baseline; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid #2a2a2e; margin-bottom: 24px; }
+.logo { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.logo span { color: #e89a3c; }
+.sub { font-size: 13px; color: #888; }
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+.tab { padding: 9px 18px; font-size: 14px; font-weight: 500; cursor: pointer; color: #888; background: none; border: none; border-radius: 8px; }
+.tab.active { color: #e8e6e0; background: #1c1c20; }
+.section { display: none; }
+.section.active { display: block; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+select, input { background: #1c1c20; color: #e8e6e0; border: 1px solid #2a2a2e; border-radius: 8px; padding: 9px 12px; font-size: 13px; }
+input { flex: 1; min-width: 200px; }
+.btn { background: #e89a3c; color: #0e0e10; border: none; border-radius: 8px; padding: 9px 18px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.status { font-size: 12px; color: #888; margin-bottom: 16px; min-height: 16px; }
+.card { border-bottom: 1px solid #2a2a2e; padding: 16px 0; }
+.meta { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+.badge { font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 600; }
+.b-region { background: #1c3a52; color: #6db3e8; }
+.b-alta { background: #4a1c1c; color: #e87d7d; }
+.b-media { background: #4a3a1c; color: #e8c47d; }
+.b-baja { background: #2a2a2e; color: #999; }
+.src { font-size: 11px; color: #666; }
+.title { font-size: 16px; font-weight: 600; margin-bottom: 5px; }
+.title a { color: #e8e6e0; text-decoration: none; }
+.title a:hover { color: #e89a3c; }
+.resumen { font-size: 13px; color: #aaa; margin-bottom: 7px; }
+.porque { font-size: 12px; color: #777; font-style: italic; border-left: 2px solid #3a3a3e; padding-left: 9px; }
+.tcard { background: #1c1c20; border: 1px solid #2a2a2e; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+.thead { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.ttitle { font-size: 16px; font-weight: 600; }
+.tvol { font-size: 12px; color: #888; white-space: nowrap; }
+.tdesc { font-size: 13px; color: #aaa; margin-bottom: 10px; }
+.tlabel { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.angle { font-size: 12px; color: #aaa; padding: 4px 0; border-top: 1px solid #2a2a2e; }
+.angle:before { content: "→ "; color: #e89a3c; }
+.empty { text-align: center; padding: 60px 20px; color: #666; font-size: 14px; }
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #3a3a3e; border-top-color: #e89a3c; border-radius: 50%; animation: s 0.7s linear infinite; vertical-align: -2px; }
+@keyframes s { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo">La <span>Aurora</span></div>
+  <div class="sub">Monitor federal de noticias</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="tab('noticias')">Noticias del día</button>
+  <button class="tab" onclick="tab('tendencias')">Tendencias</button>
+</div>
+
+<div id="s-noticias" class="section active">
+  <div class="controls">
+    <select id="region">
+      <option value="">Todas las regiones</option>
+      <option value="Centro">Centro</option>
+      <option value="Litoral">Litoral</option>
+      <option value="Cuyo">Cuyo</option>
+      <option value="NOA">NOA</option>
+      <option value="NEA">NEA</option>
+      <option value="Patagonia">Patagonia</option>
+      <option value="Bonaerense">Bonaerense</option>
+    </select>
+    <select id="top">
+      <option value="10">Top 10</option>
+      <option value="15" selected>Top 15</option>
+      <option value="20">Top 20</option>
+    </select>
+    <button class="btn" id="b1" onclick="analizar()">Analizar noticias</button>
+  </div>
+  <div class="status" id="st1"></div>
+  <div id="noticias"><div class="empty">Hacé clic en "Analizar noticias" para empezar</div></div>
+</div>
+
+<div id="s-tendencias" class="section">
+  <div class="controls">
+    <input id="ctx" placeholder="Contexto opcional: política, economía...">
+    <button class="btn" id="b2" onclick="tendencias()">Buscar tendencias</button>
+  </div>
+  <div class="status" id="st2"></div>
+  <div id="tendencias"><div class="empty">Hacé clic en "Buscar tendencias" para ver qué está caliente hoy</div></div>
+</div>
+</div>
+
+<script>
+function tab(t) {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('s-' + t).classList.add('active');
+}
+
+async function analizar() {
+  const b = document.getElementById('b1');
+  const region = document.getElementById('region').value;
+  const top = parseInt(document.getElementById('top').value);
+  b.disabled = true; b.innerHTML = '<span class="spin"></span>';
+  document.getElementById('st1').textContent = 'Leyendo feeds y analizando con IA...';
+  document.getElementById('noticias').innerHTML = '<div class="empty"><span class="spin"></span></div>';
+  try {
+    const r = await fetch('/api/analyze', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ regions: region ? [region] : null, top })
+    });
+    const d = await r.json();
+    if (d.error || !d.items.length) { document.getElementById('noticias').innerHTML = '<div class="empty">No se pudieron cargar noticias. Probá de nuevo.</div>'; }
+    else {
+      document.getElementById('st1').textContent = d.items.length + ' seleccionadas de ' + d.total_leidas + ' leídas';
+      document.getElementById('noticias').innerHTML = d.items.map(it => {
+        const bc = it.score === 'alta' ? 'b-alta' : it.score === 'media' ? 'b-media' : 'b-baja';
+        return '<div class="card"><div class="meta"><span class="badge b-region">' + it.region + '</span><span class="badge ' + bc + '">' + it.score + '</span><span class="src">' + it.source + '</span></div><div class="title"><a href="' + it.link + '" target="_blank">' + it.title + '</a></div><div class="resumen">' + it.resumen + '</div><div class="porque">' + it.porque + '</div></div>';
+      }).join('');
+    }
+  } catch(e) { document.getElementById('noticias').innerHTML = '<div class="empty">Error de conexión. Probá de nuevo.</div>'; }
+  b.disabled = false; b.textContent = 'Analizar noticias';
+}
+
+async function tendencias() {
+  const b = document.getElementById('b2');
+  const ctx = document.getElementById('ctx').value;
+  b.disabled = true; b.innerHTML = '<span class="spin"></span>';
+  document.getElementById('st2').textContent = 'Buscando qué explota en Argentina hoy...';
+  document.getElementById('tendencias').innerHTML = '<div class="empty"><span class="spin"></span></div>';
+  try {
+    const r = await fetch('/api/tendencias', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ context: ctx })
+    });
+    const d = await r.json();
+    document.getElementById('st2').textContent = '';
+    document.getElementById('tendencias').innerHTML = d.tendencias.map(t =>
+      '<div class="tcard"><div class="thead"><div class="ttitle">' + t.titulo + '</div><div class="tvol">' + t.volumen + '</div></div><div class="tdesc">' + t.descripcion + '</div><div class="tlabel">Ángulos para tu contenido</div>' + t.angulos.map(a => '<div class="angle">' + a + '</div>').join('') + '</div>'
+    ).join('');
+  } catch(e) { document.getElementById('tendencias').innerHTML = '<div class="empty">Error de conexión. Probá de nuevo.</div>'; }
+  b.disabled = false; b.textContent = 'Buscar tendencias';
+}
+</script>
+</body>
+</html>
